@@ -92,7 +92,7 @@ def centerAruco2(trans_matrix_array, offset_matrix):
 
     for i, aruco in enumerate(trans_matrix_array):
         index_of_aruco = aruco[0][0]
-        print(index_of_aruco)
+        #print(index_of_aruco)
         if index_of_aruco < 18:
     
             offset_of_aruco = np.linalg.inv(offset_matrix[index_of_aruco])
@@ -105,7 +105,7 @@ def centerAruco3(trans_matrix_array, offset_matrix):
 
     for i, aruco in enumerate(trans_matrix_array):
         index_of_aruco = aruco[0][0]
-        print(index_of_aruco)
+        #print(index_of_aruco)
         if index_of_aruco < 18:
             
             offset_of_aruco = np.linalg.inv(offset_matrix[index_of_aruco])

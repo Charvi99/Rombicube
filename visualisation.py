@@ -68,7 +68,7 @@ class Visaliser():
         self.ax.cla()
 
 def draw3Dscatter(ax,trans_matrix):
-    print(trans_matrix)
+    #print(trans_matrix)
     x = trans_matrix[0,3]
     y = trans_matrix[1,3]
     z = trans_matrix[2,3]

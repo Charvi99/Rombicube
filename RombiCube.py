@@ -14,8 +14,11 @@ class RombiCube():
         # self.camera_matrix = np.load("webcam_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("webcam_npy/distortion_coefficients.npy")
 
-        self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
-        self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
+        self.camera_matrix = np.load("rpi_cam_1640_922/calibration_matrix.npy")
+        self.distortion_matrix = np.load("rpi_cam_1640_922/distortion_coefficients.npy")
+
+        # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
+        # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
 
         # init marker parameters
         self.initizer = Init(unit_size=unit_size,marker_size=marker_size)
@@ -139,7 +142,7 @@ class RombiCube():
                 if are_similar:
                     if j not in okay_quat_temp:
                         okay_quat_temp.append(j)
-                print(i, " with ", j, " are ", are_similar)
+                #print(i, " with ", j, " are ", are_similar)
             okay_quat.append(okay_quat_temp)
             
         selected_quat_array_index = 0
