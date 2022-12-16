@@ -4,18 +4,24 @@ import cv2
 import transform as trans
 
 class Visaliser():
-    def __init__(self, camera_matrix, distortion_matrix):
+    def __init__(self, camera_matrix, distortion_matrix, vis_enable):
         # setings for scatter 
-        plt.ion()
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(projection='3d')
-        self.ax.set_box_aspect([1, 1, 1])
+        if vis_enable:
+            plt.ion()
+            self.fig = plt.figure(0)
+            self.ax = self.fig.add_subplot(projection='3d')
+            self.ax.set_box_aspect([1, 1, 1])
 
         # setting for figure
         self.camera_matrix = camera_matrix
         self.distortion_matrix = distortion_matrix
+        self.enable = vis_enable
+
+
 
     def setScatter(self):
+        if self.enable == False:
+            return
         self.ax.set_xlim3d([-1, 0])
         self.ax.set_ylim3d([-1, 0])
         self.ax.set_zlim3d([1, 3])
@@ -24,6 +30,8 @@ class Visaliser():
         self.ax.set_zlabel('z')
 
     def show3D(self,trans_matrix, auto_clear = True):
+        if self.enable == False:
+            return
         self.setScatter()
         self.x = trans_matrix[0,3]
         self.y = trans_matrix[1,3]
@@ -38,6 +46,8 @@ class Visaliser():
             self.ax.cla()
 
     def drawSingleAxis(self, trans_matrix=np.eye(4,4), axis=0, lenght=0.2, line_width=3):
+        if self.enable == False:
+            return
         axis_matrix = np.eye(4,4)
         axis_matrix[axis,3] = lenght
         trans_axis_matrix = np.matmul(trans_matrix,axis_matrix)
@@ -52,12 +62,15 @@ class Visaliser():
             linewidth=line_width) 
 
     def showAxis(self, frame, rvec, tvec, lenght= 0.01):
+        if self.enable == False:
+            return        
         cv2.drawFrameAxes(frame, self.camera_matrix,
                                       self.distortion_matrix, rvec=rvec,
                                       tvec=tvec, length=lenght)
 
     def showAxis2(self, frame, trans_mat, lenght= 0.01):
-        
+        if self.enable == False:
+            return
         tvec, rvec = trans.transMatrixToTvecRvec(trans_mat)
         
         cv2.drawFrameAxes(frame, self.camera_matrix,
@@ -65,9 +78,13 @@ class Visaliser():
                                       tvec=tvec, length=lenght)
 
     def clear3D(self):
+        if self.enable == False:
+            return
         self.ax.cla()
 
-def draw3Dscatter(ax,trans_matrix):
+def draw3Dscatter(self,ax,trans_matrix):
+    if self.enable == False:
+        return
     #print(trans_matrix)
     x = trans_matrix[0,3]
     y = trans_matrix[1,3]
@@ -147,7 +164,8 @@ def tvecToPos(tvec):
     return [x, y, z]
 
 def draw3Dscatter_origin_offset(ax, offset_array):
-
+    if self.enable == False:
+            return
     for offset in offset_array:
 
         x = offset[0,3]

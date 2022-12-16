@@ -7,15 +7,16 @@ from visualisation import Visaliser
 import numpy as np
 import cv2
 
+import time
 
 class RombiCube():
-    def __init__(self,unit_size, marker_size):
+    def __init__(self,unit_size, marker_size, vis_enable = False):
         # load parameters for camera
         # self.camera_matrix = np.load("webcam_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("webcam_npy/distortion_coefficients.npy")
 
-        self.camera_matrix = np.load("rpi_cam_1640_922/calibration_matrix.npy")
-        self.distortion_matrix = np.load("rpi_cam_1640_922/distortion_coefficients.npy")
+        self.camera_matrix = np.load("hq_calib_4000_3000/calibration_matrix.npy")
+        self.distortion_matrix = np.load("hq_calib_4000_3000/distortion_coefficients.npy")
 
         # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
@@ -30,7 +31,7 @@ class RombiCube():
         self.aruco_parameters = self.initizer.getArucoParameters()
 
         # create visualization
-        self.vis = Visaliser(self.camera_matrix, self.distortion_matrix)
+        self.vis = Visaliser(self.camera_matrix, self.distortion_matrix, vis_enable)
         
         self.xyz_pos = []
     
@@ -43,11 +44,13 @@ class RombiCube():
     def estimatePose(self, frame):
         self.transform_matrix_array = []
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+        # gray = 255 - frame[:, :, 3]
         # detect markers
+        time1 = time.time()
         corners, index_of_marker, rejected_img_points = cv2.aruco.detectMarkers(
             gray, self.aruco_dict_type, parameters=self.aruco_parameters)
-        
+        print("search: {0}".format(time.time()-time1))
+        print("succes: {0}".format(len(corners)))
         # If markers are detected
         if len(corners) > 0:
 
@@ -59,7 +62,7 @@ class RombiCube():
                                                              self.distortion_matrix,
                                                              flags=cv2.SOLVEPNP_IPPE_SQUARE)
 
-                cv2.aruco.drawDetectedMarkers(frame, corners)
+                # cv2.aruco.drawDetectedMarkers(frame, corners)
 
                 # Draw Axis
                 

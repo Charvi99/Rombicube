@@ -4,14 +4,50 @@ from RombiCube import RombiCube
 import numpy as np
 import matplotlib.pyplot as plt
 import server2 as server
+import time
+
+from picamera2 import Picamera2, Preview
+import sys
+import select
+import tty
+import termios
+
+def isData():
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+
+old_settings = termios.tcgetattr(sys.stdin)
 
 if __name__ == '__main__':
 
+
+    picam2 = Picamera2()
+    camera_config = picam2.create_still_configuration(buffer_count=2)
+    # camera_config2 = picam2.create_preview_configuration()
+
+    # We're going to set up some configuration structures, apply each one in
+    # turn and see if it gave us the configuration we expected.
+
+    res_1 = (2000,1500)
+    res_2 = (3000,2000)
+    res_3 = (4000,3000)
+
+    picam2.preview_configuration.size = res_3
+    picam2.preview_configuration.format = "BGR888"
+    picam2.preview_configuration.controls.ExposureTime = 10000
+    picam2.configure("preview")
+
+
+    picam2.start_preview(Preview.QT)
+    picam2.start()
+    time.sleep(1)
     
     #capture = cv2.VideoCapture(0)
     
-    my_server = server.ImageServer()
+    #my_server = server.ImageServer()
+    
     rombiCube = RombiCube(unit_size=0.05, marker_size=0.015)
+
+    tty.setcbreak(sys.stdin.fileno())
 
     while True:
 
@@ -24,23 +60,37 @@ if __name__ == '__main__':
         # key = cv2.waitKey(1) & 0xFF
         # if key == ord('q'):
         #     break
-        try:
-            frame = my_server.getFrame()
+        #try:
+            frame = picam2.capture_array("main")
+            time1 = time.time()
             rombiCube.estimatePose(frame=frame)
-            #rombiCube.drawWithRombiCube()
-            
-            frame_prew = cv2.resize(frame,[820,616])
-            cv2.imshow('Estimated Pose', frame_prew)
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
+            print("cycle: {0}".format(time.time()-time1))
+            print("=============================")
+            # input = select.select([sys.stdin], [], [], 1)[0]
+            if isData():
+                c = sys.stdin.read(1)
                 break
+            #rombiCube.drawWithRombiCube()
+            # plt.figure(1)
+            # plt.imshow(frame) 
+            # plt.pause(0.1)
+            #frame_prew = cv2.resize(frame,[820,616])
+
+            # x=sys.stdin.read(1)[0]
+            # print("You pressed", x)
+            # if x == "r":
+            #     break
+                # print("If condition is met")
+            # cv2.imshow('Estimated Pose', frame_prew)
+            # key = cv2.waitKey(1) & 0xFF
+            # if key == ord('q'):
+            #     break
             
 
-        except:
-            pass    
+        #except:
+            # print("err")    
         
-        
-
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)    
     
     
     # Creating dataset
@@ -70,4 +120,4 @@ if __name__ == '__main__':
     plt.show()
 
     #capture.release()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
