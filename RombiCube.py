@@ -6,7 +6,7 @@ from visualisation import Visaliser
 # other libs
 import numpy as np
 import cv2
-
+import apriltag
 import time
 
 class RombiCube():
@@ -15,8 +15,8 @@ class RombiCube():
         # self.camera_matrix = np.load("webcam_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("webcam_npy/distortion_coefficients.npy")
 
-        self.camera_matrix = np.load("hq_calib_4000_3000/calibration_matrix.npy")
-        self.distortion_matrix = np.load("hq_calib_4000_3000/distortion_coefficients.npy")
+        self.camera_matrix = np.load("hq_calib_2000_1500_mes/calibration_matrix.npy")
+        self.distortion_matrix = np.load("hq_calib_2000_1500_mes/distortion_coefficients.npy")
 
         # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
@@ -24,7 +24,7 @@ class RombiCube():
         # init marker parameters
         self.initizer = Init(unit_size=unit_size,marker_size=marker_size)
 
-        self.aruco_dict_type = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
+        self.aruco_dict_type = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_1000)
         self.marker_size = self.initizer.getMarkerSize()
         self.marker_edge = self.initizer.getMarkerEdge()
         self.offset_matrix = self.initizer.getMatrixOffset()

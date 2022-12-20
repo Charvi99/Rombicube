@@ -58,7 +58,7 @@ res_1 = (2000,1500)
 res_2 = (3000,2000)
 res_3 = (4000,3000)
 
-picam2.preview_configuration.size = res_3
+picam2.preview_configuration.size = res_1
 picam2.preview_configuration.format = "BGR888"
 picam2.preview_configuration.controls.ExposureTime = 10000
 picam2.configure("preview")
@@ -81,8 +81,19 @@ while True:
         
         i = i + 1
         print(i)
-        if i == 25:
+        if i == 15:
             break
+        #  c = sys.stdin.read(1)
+    frame = picam2.capture_array("main")
+    # if prev_img is not frame:
+    #     prev_img = frame
+    images.append(frame.astype(np.uint8))
+    
+    i = i + 1
+    print(i)
+    time.sleep(0.1)
+    if i == 50:
+        break
 termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)  
 
     # cv2.imshow('frame',frame)

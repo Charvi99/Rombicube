@@ -33,9 +33,9 @@ class Init():
         # self.aurocParameters.polygonalApproxAccuracyRate  = 0.1
         # self.aurocParameters.perspectiveRemovePixelPerCell  = 10
         # self.aurocParameters.cornerRefinementWinSize = 10
-        # self.aurocParameters.cornerRefinementMethod = 1
+        self.aurocParameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         # self.aurocParameters.cornerRefinementMinAccuracy = 0.01
-        self.aurocParameters.cornerRefinementMaxIterations = cv2.aruco.CORNER_REFINE_SUBPIX
+        #self.aurocParameters.cornerRefinementMaxIterations = 10
 
     def createMarkerEdge(self):
         self.aruco_edges = np.array([[-self.marker_lenght / 2, self.marker_lenght / 2, 0],
