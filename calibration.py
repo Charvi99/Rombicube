@@ -57,8 +57,9 @@ camera_config = picam2.create_still_configuration(buffer_count=2)
 res_1 = (2000,1500)
 res_2 = (3000,2000)
 res_3 = (4000,3000)
+res_4 = (4000,1800)
 
-picam2.preview_configuration.size = res_1
+picam2.preview_configuration.size = res_4
 picam2.preview_configuration.format = "BGR888"
 picam2.preview_configuration.controls.ExposureTime = 10000
 picam2.configure("preview")
@@ -81,7 +82,7 @@ while True:
         
         i = i + 1
         print(i)
-        if i == 15:
+        if i == 25:
             break
         #  c = sys.stdin.read(1)
     frame = picam2.capture_array("main")

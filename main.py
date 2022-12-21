@@ -30,8 +30,9 @@ if __name__ == '__main__':
     res_1 = (2000,1500)
     res_2 = (3000,2000)
     res_3 = (4000,3000)
+    res_4 = (4000,1800)
 
-    picam2.preview_configuration.size = res_1
+    picam2.preview_configuration.size = res_4
     picam2.preview_configuration.format = "BGR888"
     picam2.preview_configuration.controls.ExposureTime = 10000
     picam2.configure("preview")
@@ -105,7 +106,10 @@ if __name__ == '__main__':
     # Creating plot
     drawing = rombiCube.getDrawing()
     arr = np.array(drawing)
-    np.savetxt("z.csv", arr, delimiter=",")
+    np.savetxt("cube.csv", arr, delimiter=",")
+    # dof_mes_array = np.array(rombiCube.trans_mat_pos)
+    # print(dof_mes_array)
+    # np.savetxt("6dof_mes.csv", dof_mes_array, delimiter=",")
     ax.plot(arr[:,0],arr[:,1],arr[:,2], color = "green")
     plt.title("simple 3D scatter plot")
     

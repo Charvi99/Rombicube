@@ -24,18 +24,17 @@ class Init():
 
     def createArucoParameters(self):
         self.aurocParameters = cv2.aruco.DetectorParameters_create()
-        # self.aurocParameters.adaptiveThreshWinSizeMin = 4
-        # self.aurocParameters.adaptiveThreshWinSizeMax = 26
-        # self.aurocParameters.adaptiveThreshWinSizeStep = 2
-        # self.aurocParameters.minMarkerPerimeterRate  = 0.01
-        # self.aurocParameters.maxMarkerPerimeterRate  = 4
-        # self.aurocParameters.adaptiveThreshWinSizeStep = 2
-        # self.aurocParameters.polygonalApproxAccuracyRate  = 0.1
-        # self.aurocParameters.perspectiveRemovePixelPerCell  = 10
-        # self.aurocParameters.cornerRefinementWinSize = 10
+        self.aurocParameters.adaptiveThreshWinSizeMin = 3
+        self.aurocParameters.adaptiveThreshWinSizeMax = 23
+        self.aurocParameters.adaptiveThreshWinSizeStep = 10
+        self.aurocParameters.cornerRefinementMaxIterations = 30
         self.aurocParameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-        # self.aurocParameters.cornerRefinementMinAccuracy = 0.01
-        #self.aurocParameters.cornerRefinementMaxIterations = 10
+        self.aurocParameters.cornerRefinementMinAccuracy = 0.1
+        self.aurocParameters.cornerRefinementWinSize = 5
+        self.aurocParameters.maxMarkerPerimeterRate  = 4
+        self.aurocParameters.minMarkerPerimeterRate  = 0.03
+        # self.aurocParameters.minSideLengthCanonicalImg  = 1
+        self.aurocParameters.useAruco3Detection = False
 
     def createMarkerEdge(self):
         self.aruco_edges = np.array([[-self.marker_lenght / 2, self.marker_lenght / 2, 0],

@@ -15,8 +15,11 @@ class RombiCube():
         # self.camera_matrix = np.load("webcam_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("webcam_npy/distortion_coefficients.npy")
 
-        self.camera_matrix = np.load("hq_calib_2000_1500_mes/calibration_matrix.npy")
-        self.distortion_matrix = np.load("hq_calib_2000_1500_mes/distortion_coefficients.npy")
+        # self.camera_matrix = np.load("hq_calib_2000_1500_mes/calibration_matrix.npy")
+        # self.distortion_matrix = np.load("hq_calib_2000_1500_mes/distortion_coefficients.npy")
+
+        self.camera_matrix = np.load("hq_calib_4000_3000/calibration_matrix.npy")
+        self.distortion_matrix = np.load("hq_calib_4000_3000/distortion_coefficients.npy")
 
         # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
@@ -34,6 +37,7 @@ class RombiCube():
         self.vis = Visaliser(self.camera_matrix, self.distortion_matrix, vis_enable)
         
         self.xyz_pos = []
+        self.trans_mat_pos = []
     
    #def drawWithRombiCube(self):
         
@@ -43,7 +47,10 @@ class RombiCube():
     
     def estimatePose(self, frame):
         self.transform_matrix_array = []
+        time1 = time.time()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        print("to gray: {0}".format(time.time()-time1))
+
         # gray = 255 - frame[:, :, 3]
         # detect markers
         time1 = time.time()
@@ -52,8 +59,9 @@ class RombiCube():
         print("search: {0}".format(time.time()-time1))
         print("succes: {0}".format(len(corners)))
         # If markers are detected
-        if len(corners) > 0:
 
+        if len(corners) > 0:
+            time1 = time.time()
             for i in range(0, len(index_of_marker)):
 
                 success, rvec, tvec, d = cv2.solvePnPGeneric(self.marker_edge,
@@ -71,29 +79,40 @@ class RombiCube():
 
                 self.createTransfromMatrixArray(
                     rvec=rvec, tvec=tvec, index_of_marker=index_of_marker[i], succes=success)
-                
+            print("estimate: {0}".format(time.time()-time1))
+            
+            time1 = time.time()           
             transformation_center = self.centerMarkers()
-            if len(transformation_center)>1:
+            print("center: {0}".format(time.time()-time1))
 
+            if len(transformation_center)>1:
+                time1 = time.time()           
                 transformation_selected, good_rotation_count = self.removeBadCandidates(transformation_center)
+                print("filter: {0}".format(time.time()-time1))
 
                 # for trans_mat in transformation_selected:
                 #     self.vis.show3D(trans_matrix=trans_mat, auto_clear=False)
                 # self.vis.clear3D()
-                
+
+                time1 = time.time()           
                 for trans_mat in transformation_selected:
                     self.vis.showAxis2(frame,  trans_mat, 0.015)
 
                 correction_matrix = trans.rvecTvecToTransfMatrix(tvec=[0,0,0], rvec=np.array([0, -0.3316126, 0 ]))
                 if good_rotation_count > 0:
-                    self.transformation_finall= trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
-                    self.transformation_finall2 = np.matmul(self.transformation_finall,correction_matrix)             
-                    self.vis.showAxis2(frame,  self.transformation_finall, 0.01)
+                    self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
+                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
                     
                     
-                    self.xyz_pos.append([self.transformation_finall[0,3],self.transformation_finall[1,3],self.transformation_finall[2,3]])
+                    self.xyz_pos.append([self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]])
+                    self.trans_mat_pos.append(self.transformation_finall_center)
                     self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
-        frame = cv2.flip(frame, 1)
+                print("rest: {0}".format(time.time()-time1))
+
+        # time1 = time.time()           
+        # frame = cv2.flip(frame, 1)
+        # print("flip: {0}".format(time.time()-time1))
 
     def createTransfromMatrixArray(self, rvec, tvec, index_of_marker, succes):
 
@@ -122,14 +141,16 @@ class RombiCube():
         
         # test quaternion
         quat_array = self.getQuaternion(transformation_center)
+        time1 = time.time()           
         similar_quat_index = self.getSimilarQuat(quat_array)
+        print("similarQuat: {0}".format(time.time()-time1))
         best_rotation = self.getBestRot(transformation_center, similar_quat_index)
-        
         # if len(transformation_center) > 0:
         #     best_rotation = self.removeBadCandidates_rotation(transformation_center)
         if len(best_rotation) > 0:
             best_translation = self.removeBadCandidates_translacion(best_rotation)
         return best_translation, len(best_translation)
+
     def getQuaternion(self, transformation_array):
             quat_array = []
             for trans_mat in transformation_array:

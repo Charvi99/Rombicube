@@ -302,5 +302,8 @@ def APE(Tf_cam_ball, ids, corners):
         pose_marker_with_APE = np.reshape(res[0],(1,6)) 
 
 
-
+def tipPosition(trans_mat):
+    tip_mat = np.eye(4,4)
+    tip_mat[2,3] = 0.185
+    return np.matmul(trans_mat,tip_mat)
     
