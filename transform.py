@@ -304,8 +304,9 @@ def APE(Tf_cam_ball, ids, corners):
 
 def tipPosition(trans_mat):
     tip_mat = np.eye(4,4)
-    tip_mat[2,3] = 0.185
-    return np.matmul(trans_mat,tip_mat)
+    tip_mat[2,3] = -0.185
+    output = np.matmul(trans_mat,tip_mat)
+    return output
 
 def getAngles(trans_mat):
     R = rot.from_matrix(trans_mat[:3, :3])

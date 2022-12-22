@@ -45,7 +45,10 @@ class RombiCube():
     
     def getDrawing(self):
         return self.xyz_pos
-    
+
+    def getAngles(self):
+        return self.angles
+
     def estimatePose(self, frame):
         self.transform_matrix_array = []
         time1 = time.time()
@@ -102,8 +105,8 @@ class RombiCube():
                 correction_matrix = trans.rvecTvecToTransfMatrix(tvec=[0,0,0], rvec=np.array([0, -0.3316126, 0 ]))
                 if good_rotation_count > 0:
                     self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
-                    # self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
-                    self.transformation_finall_tip = self.transformation_finall_center
+                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    # self.transformation_finall_tip = self.transformation_finall_center
                     self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
                     
                     
@@ -242,6 +245,3 @@ class RombiCube():
     def removeBadCandidates_translacion(self, transformation_array):
         best_translation, centers_R3, good_indices = trans.removeBadCandidates(np.array(transformation_array), self.camera_matrix, self.distortion_matrix)
         return best_translation
-
-    def getAngles(self):
-        return self.angles
