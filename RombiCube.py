@@ -18,8 +18,8 @@ class RombiCube():
         # self.camera_matrix = np.load("hq_calib_2000_1500_mes/calibration_matrix.npy")
         # self.distortion_matrix = np.load("hq_calib_2000_1500_mes/distortion_coefficients.npy")
 
-        self.camera_matrix = np.load("hq_calib_4000_3000/calibration_matrix.npy")
-        self.distortion_matrix = np.load("hq_calib_4000_3000/distortion_coefficients.npy")
+        self.camera_matrix = np.load("hq_calib_4000_1800/calibration_matrix.npy")
+        self.distortion_matrix = np.load("hq_calib_4000_1800/distortion_coefficients.npy")
 
         # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
         # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
@@ -37,6 +37,7 @@ class RombiCube():
         self.vis = Visaliser(self.camera_matrix, self.distortion_matrix, vis_enable)
         
         self.xyz_pos = []
+        self.angles = []
         self.trans_mat_pos = []
     
    #def drawWithRombiCube(self):
@@ -101,11 +102,13 @@ class RombiCube():
                 correction_matrix = trans.rvecTvecToTransfMatrix(tvec=[0,0,0], rvec=np.array([0, -0.3316126, 0 ]))
                 if good_rotation_count > 0:
                     self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
-                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    # self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    self.transformation_finall_tip = self.transformation_finall_center
                     self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
                     
                     
                     self.xyz_pos.append([self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]])
+                    self.angles.append(trans.getAngles(self.transformation_finall_tip))
                     self.trans_mat_pos.append(self.transformation_finall_center)
                     self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
                 print("rest: {0}".format(time.time()-time1))
@@ -239,3 +242,6 @@ class RombiCube():
     def removeBadCandidates_translacion(self, transformation_array):
         best_translation, centers_R3, good_indices = trans.removeBadCandidates(np.array(transformation_array), self.camera_matrix, self.distortion_matrix)
         return best_translation
+
+    def getAngles(self):
+        return self.angles

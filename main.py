@@ -104,18 +104,23 @@ if __name__ == '__main__':
     ax.set_box_aspect([1, 1, 1])
     
     # Creating plot
-    drawing = rombiCube.getDrawing()
+    drawing = rombiCube.getAngles()
     arr = np.array(drawing)
-    np.savetxt("cube.csv", arr, delimiter=",")
+    np.savetxt("roll.csv", arr, delimiter=",")
     # dof_mes_array = np.array(rombiCube.trans_mat_pos)
     # print(dof_mes_array)
     # np.savetxt("6dof_mes.csv", dof_mes_array, delimiter=",")
     ax.plot(arr[:,0],arr[:,1],arr[:,2], color = "green")
     plt.title("simple 3D scatter plot")
     
-    ax.set_xlim3d([-0.2, 0.2])
-    ax.set_ylim3d([-0.2, 0.2])
-    ax.set_zlim3d([0.4, 0.8])
+    ax.set_xlim3d([-180, 180])
+    ax.set_ylim3d([-180, 180])
+    ax.set_zlim3d([-180, 180])
+
+    # ax.set_xlim3d([-0.2, 0.2])
+    # ax.set_ylim3d([-0.2, 0.2])
+    # ax.set_zlim3d([0.2, 0.6])
+
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')

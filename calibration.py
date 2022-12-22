@@ -107,6 +107,7 @@ for index, img in enumerate(images):
    
     # Grayscale the image
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    print(gray.size)
     # Find aruco markers in the query image
     corners, ids, _ = aruco.detectMarkers(
             image=gray,

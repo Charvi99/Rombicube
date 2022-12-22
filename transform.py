@@ -306,4 +306,10 @@ def tipPosition(trans_mat):
     tip_mat = np.eye(4,4)
     tip_mat[2,3] = 0.185
     return np.matmul(trans_mat,tip_mat)
+
+def getAngles(trans_mat):
+    R = rot.from_matrix(trans_mat[:3, :3])
+    euler = R.as_euler('zxy', degrees=True)
+    # euler[2] = abs(euler[2])
+    return euler
     
