@@ -105,8 +105,8 @@ class RombiCube():
                 correction_matrix = trans.rvecTvecToTransfMatrix(tvec=[0,0,0], rvec=np.array([0, -0.3316126, 0 ]))
                 if good_rotation_count > 0:
                     self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
-                    # self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
-                    self.transformation_finall_tip = self.transformation_finall_center
+                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    # self.transformation_finall_tip = self.transformation_finall_center
                     self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
                     
                     

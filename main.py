@@ -104,9 +104,9 @@ if __name__ == '__main__':
     ax.set_box_aspect([1, 1, 1])
     
     # Creating plot
-    drawing = rombiCube.getAngles()
+    drawing = rombiCube.getDrawing()
     arr = np.array(drawing)
-    np.savetxt("yaw_sipky_nahoru_90.csv", arr, delimiter=",")
+    np.savetxt("6DOF_ctverce.csv", arr, delimiter=",")
     # dof_mes_array = np.array(rombiCube.trans_mat_pos)
     # print(dof_mes_array)
     # np.savetxt("6dof_mes.csv", dof_mes_array, delimiter=",")
