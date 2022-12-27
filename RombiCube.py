@@ -35,41 +35,93 @@ class RombiCube():
 
         # create visualization
         self.vis = Visaliser(self.camera_matrix, self.distortion_matrix, vis_enable)
-        
+
         self.xyz_pos = []
         self.angles = []
         self.trans_mat_pos = []
-    
-   #def drawWithRombiCube(self):
-        
-    
+
+        self.last_x = 0
+        self.last_y = 0
+
+#def drawWithRombiCube(self):
+
+
     def getDrawing(self):
         return self.xyz_pos
 
     def getAngles(self):
         return self.angles
 
+    def undistort(self, frame):
+        h, w = frame.shape[:2]
+        self.newcameramtx, roi = cv2.getOptimalNewCameraMatrix(self.camera_matrix,self.distortion_matrix, (w,h), 1, (w,h))
+        dst = cv2.undistort(frame,self.camera_matrix, self.distortion_matrix, None, self.newcameramtx)
+        x,y,w,h = roi
+        dst = dst[y:y+h,x:x+w]
+        return dst
+
+    def xyRombiCenter(self, list_x, list_y):
+        self.last_x = sum(list_x)/len(list_x)
+        self.last_y = sum(list_y)/len(list_y)
+
+    def detectMarkers(self, img):
+        WINDOW = 200
+        h, w = img.shape[:2]
+        if self.last_x != 0 or self.last_y != 0:    # chceck if last val is valid (0 means init val)
+            if self.last_y - WINDOW > 0 and self.last_x - WINDOW > 0:     #check if WINDOW doesn overlap pic (left, top)
+                if self.last_y + WINDOW < h and self.last_x + WINDOW < w:     #check if WINDOW doesn overlap pic (right, bott)
+                    crop_img = img[int(self.last_y - WINDOW):int(self.last_y + WINDOW),int(self.last_x - WINDOW):int(self.last_x + WINDOW)]
+                
+                else: 
+                    crop_img = img[int(self.last_y - WINDOW):int(h), int(self.last_x- WINDOW):int(w)]
+                
+                corners, index_of_marker, rejected_img_points = cv2.aruco.detectMarkers(
+                        crop_img, self.aruco_dict_type, parameters=self.aruco_parameters)
+                    
+                if len(corners) > 0:
+                    for i in range(len(index_of_marker)):
+                        for j in range(4):
+                            corners[i][0][j][0] = corners[i][0][j][0] + (self.last_x - WINDOW)
+                            corners[i][0][j][1] = corners[i][0][j][1] + (self.last_y - WINDOW)
+                    return corners, index_of_marker
+            
+            else:
+                crop_img = img[0:int(self.last_y + WINDOW), 0:int(self.last_x + WINDOW)]
+                corners, index_of_marker, rejected_img_points = cv2.aruco.detectMarkers(
+                        crop_img, self.aruco_dict_type, parameters=self.aruco_parameters)
+                return corners, index_of_marker
+            # now i have croped image
+
+        corners, index_of_marker, rejected_img_points = cv2.aruco.detectMarkers(
+                img, self.aruco_dict_type, parameters=self.aruco_parameters)
+        return corners, index_of_marker
+
     def estimatePose(self, frame):
         self.transform_matrix_array = []
-        time1 = time.time()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        print("to gray: {0}".format(time.time()-time1))
 
-        # gray = 255 - frame[:, :, 3]
+        # time2 = time.time()
+        # frame = self.undistort(frame)
+        # print("=CYCLE=: {0}".format(time.time()-time2))
+
         # detect markers
         time1 = time.time()
-        corners, index_of_marker, rejected_img_points = cv2.aruco.detectMarkers(
-            gray, self.aruco_dict_type, parameters=self.aruco_parameters)
+        corners, index_of_marker = self.detectMarkers(gray)
         print("search: {0}".format(time.time()-time1))
         print("succes: {0}".format(len(corners)))
         # If markers are detected
 
         if len(corners) > 0:
+            rombi_center_x = []
+            rombi_center_y = []
             time1 = time.time()
             for i in range(0, len(index_of_marker)):
 
                 success, rvec, tvec, d = cv2.solvePnPGeneric(self.marker_edge,
                                                              corners[i],
+                                                            #  cameraMatrix=np.zeros((3,3)),
+                                                            #  cameraMatrix=self.newcameramtx,
+                                                            #  distCoeffs=np.zeros((1,5)),
                                                              self.camera_matrix,
                                                              self.distortion_matrix,
                                                              flags=cv2.SOLVEPNP_IPPE_SQUARE)
@@ -77,20 +129,29 @@ class RombiCube():
                 # cv2.aruco.drawDetectedMarkers(frame, corners)
 
                 # Draw Axis
-                
+
                 # for j in range(success):
                 #     self.vis.showAxis(frame, rvec[j], tvec[j])
 
+                # ======== ZRYCHLOVACI ULTRA MEGA GIGA ALGORITMUS =======
+                for j in range(4):
+                    rombi_center_x.append(corners[i][0][j][0])
+                    rombi_center_y.append(corners[i][0][j][1])
+                # =======================================================
                 self.createTransfromMatrixArray(
                     rvec=rvec, tvec=tvec, index_of_marker=index_of_marker[i], succes=success)
             print("estimate: {0}".format(time.time()-time1))
-            
-            time1 = time.time()           
+
+            # ======== ZRYCHLOVACI ULTRA ALGORITMUS =======
+            self.xyRombiCenter(rombi_center_x,rombi_center_y)
+            # =============================================
+
+            time1 = time.time()
             transformation_center = self.centerMarkers()
             print("center: {0}".format(time.time()-time1))
 
             if len(transformation_center)>1:
-                time1 = time.time()           
+                time1 = time.time()
                 transformation_selected, good_rotation_count = self.removeBadCandidates(transformation_center)
                 print("filter: {0}".format(time.time()-time1))
 
@@ -98,25 +159,28 @@ class RombiCube():
                 #     self.vis.show3D(trans_matrix=trans_mat, auto_clear=False)
                 # self.vis.clear3D()
 
-                time1 = time.time()           
+                time1 = time.time()
                 for trans_mat in transformation_selected:
                     self.vis.showAxis2(frame,  trans_mat, 0.015)
+                print("show axis?: {0}".format(time.time()-time1))
 
-                correction_matrix = trans.rvecTvecToTransfMatrix(tvec=[0,0,0], rvec=np.array([0, -0.3316126, 0 ]))
                 if good_rotation_count > 0:
-                    self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)       
-                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)       
+                    time1 = time.time()
+                    self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)
+                    self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)
                     # self.transformation_finall_tip = self.transformation_finall_center
                     self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
-                    
-                    
+                    print("transform tip: {0}".format(time.time()-time1))
+
+                    time1 = time.time()
                     self.xyz_pos.append([self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]])
                     self.angles.append(trans.getAngles(self.transformation_finall_tip))
                     self.trans_mat_pos.append(self.transformation_finall_center)
                     self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
-                print("rest: {0}".format(time.time()-time1))
+                    print("colect data: {0}".format(time.time()-time1))
+        
 
-        # time1 = time.time()           
+        # time1 = time.time()
         # frame = cv2.flip(frame, 1)
         # print("flip: {0}".format(time.time()-time1))
 
@@ -144,12 +208,10 @@ class RombiCube():
     def removeBadCandidates(self, transformation_center):
         best_rotation = []
         best_translation = []
-        
+
         # test quaternion
         quat_array = self.getQuaternion(transformation_center)
-        time1 = time.time()           
         similar_quat_index = self.getSimilarQuat(quat_array)
-        print("similarQuat: {0}".format(time.time()-time1))
         best_rotation = self.getBestRot(transformation_center, similar_quat_index)
         # if len(transformation_center) > 0:
         #     best_rotation = self.removeBadCandidates_rotation(transformation_center)
@@ -158,13 +220,13 @@ class RombiCube():
         return best_translation, len(best_translation)
 
     def getQuaternion(self, transformation_array):
-            quat_array = []
-            for trans_mat in transformation_array:
-                quat_array.append(trans.getQuaternion(trans_matrix=trans_mat))
-            return quat_array
+        quat_array = []
+        for trans_mat in transformation_array:
+            quat_array.append(trans.getQuaternion(trans_matrix=trans_mat))
+        return quat_array
     def getSimilarQuat(self, quat_array):
         okay_quat = []
-        
+
         for i, quat1 in enumerate(quat_array):
             okay_quat_temp = []
             for j, quat2 in enumerate(quat_array):
@@ -174,18 +236,18 @@ class RombiCube():
                         okay_quat_temp.append(j)
                 #print(i, " with ", j, " are ", are_similar)
             okay_quat.append(okay_quat_temp)
-            
+
         selected_quat_array_index = 0
         for new_index, list in enumerate(okay_quat):
             if len(list) > len(okay_quat[selected_quat_array_index]):
                 selected_quat_array_index = new_index
         return okay_quat[selected_quat_array_index]
-    
+
     def getBestRot(self, trans_mat, index):
         return_trans_mat = []
         for i in index:
             return_trans_mat.append(trans_mat[i])
-        
+
         return return_trans_mat
     def removeBadCandidates_rotation(self, transformation_array):
         def getAxisAngle(transformation_array):
@@ -199,8 +261,8 @@ class RombiCube():
                                rot_vec[1]/theta1, rot_vec[2]/theta1, theta1]
                 rvec_long_array.append(rvec_1_long)
             return rvec_long_array
-        
-                                
+
+
 
 
         def removeBadAxisAngle(rvec_long_array, threshold=0.25):

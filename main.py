@@ -62,34 +62,22 @@ if __name__ == '__main__':
         # if key == ord('q'):
         #     break
         #try:
+        
             frame = picam2.capture_array("main")
+
             time1 = time.time()
             rombiCube.estimatePose(frame=frame)
             print("cycle: {0}".format(time.time()-time1))
             print("=============================")
-            # input = select.select([sys.stdin], [], [], 1)[0]
+
             if isData():
                 c = sys.stdin.read(1)
                 break
-            #rombiCube.drawWithRombiCube()
+
             # plt.figure(1)
-            # plt.imshow(frame) 
+            # plt.imshow(dst) 
             # plt.pause(0.1)
-            #frame_prew = cv2.resize(frame,[820,616])
-
-            # x=sys.stdin.read(1)[0]
-            # print("You pressed", x)
-            # if x == "r":
-            #     break
-                # print("If condition is met")
-            # cv2.imshow('Estimated Pose', frame_prew)
-            # key = cv2.waitKey(1) & 0xFF
-            # if key == ord('q'):
-            #     break
-            
-
-        #except:
-            # print("err")    
+              
         
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)    
     
