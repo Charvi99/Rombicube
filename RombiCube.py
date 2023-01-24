@@ -31,6 +31,7 @@ class RombiCube():
         self.xyz_pos = []
         self.angles = []
         self.trans_mat_pos = []
+        
 
         self.last_x = 0
         self.last_y = 0
@@ -41,6 +42,12 @@ class RombiCube():
 
     def getAngles(self):
         return self.angles
+
+    def getXYZ(self):
+        return self.xyz_pos_last
+
+    def getQuat(self):
+        return self.quat_last
 
     def xyRombiCenter(self, list_x, list_y):
         self.last_x = sum(list_x)/len(list_x)
@@ -147,20 +154,25 @@ class RombiCube():
                     self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)
                     # self.transformation_finall_tip = self.transformation_finall_center
                     self.vis.showAxisFromTransMat(frame,  self.transformation_finall_tip,lenght=0.025, thickness=12)
-
-                    time1 = time.time()
-                   
-                    frame = cv2.resize(frame,(1000,450),interpolation = cv2.INTER_AREA)
-                    cv2.imwrite('/home/admin/Rombicube/saved_img/{0}.jpg'.format(len(self.xyz_pos)), frame)
-                    print("save img: {0}".format(time.time()-time1))
+                 
+                    # self.saveImg(frame)                
 
                     time1 = time.time()
                     self.xyz_pos.append([self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]])
+                    self.xyz_pos_last = [self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]]
+
                     self.angles.append(trans.getAngles(self.transformation_finall_tip))
+                    self.quat_last = trans.getQuat(self.transformation_finall_tip)
+
                     self.trans_mat_pos.append(self.transformation_finall_center)
                     # self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
                     print("colect data: {0}".format(time.time()-time1))
         
+    def saveImg(self,frame):
+        time1 = time.time()
+        frame = cv2.resize(frame,(1000,450),interpolation = cv2.INTER_AREA)
+        cv2.imwrite('/home/admin/Rombicube/saved_img/{0}.jpg'.format(len(self.xyz_pos)), frame)
+        print("save img: {0}".format(time.time()-time1))
 
     def createTransfromMatrixArray(self, rvec, tvec, index_of_marker, succes):
 

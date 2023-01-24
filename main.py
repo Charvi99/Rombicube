@@ -1,5 +1,6 @@
 import cv2
 from RombiCube import RombiCube
+from unity_socket import send
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -67,6 +68,10 @@ if __name__ == '__main__':
 
             time1 = time.time()
             rombiCube.estimatePose(frame=frame)
+            [x,y,z] = rombiCube.getXYZ()
+            [qx,qy,qz,w] = rombiCube.getQuat()
+            
+            send(x,y,z,qx,qy,qz,w)
             print("cycle: {0}".format(time.time()-time1))
             print("=============================")
 

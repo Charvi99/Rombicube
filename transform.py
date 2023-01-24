@@ -313,4 +313,10 @@ def getAngles(trans_mat):
     euler = R.as_euler('zxy', degrees=True)
     # euler[2] = abs(euler[2])
     return euler
+
+def getQuat(trans_mat):
+    R = rot.from_matrix(trans_mat[:3, :3])
+    quat = R.as_quat()
+    # euler[2] = abs(euler[2])
+    return quat
     
