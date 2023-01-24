@@ -46,7 +46,7 @@ if __name__ == '__main__':
     
     #my_server = server.ImageServer()
     
-    rombiCube = RombiCube(unit_size=0.05, marker_size=0.015)
+    rombiCube = RombiCube(unit_size=0.05, marker_size=0.015,vis_enable=True)
 
     tty.setcbreak(sys.stdin.fileno())
 

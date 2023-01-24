@@ -61,21 +61,21 @@ class Visaliser():
             'red' if axis == 0 else 'green' if axis == 1 else 'blue',
             linewidth=line_width) 
 
-    def showAxis(self, frame, rvec, tvec, lenght= 0.01):
+    def showAxis(self, frame, rvec, tvec, lenght= 0.01, thickness=1):
         if self.enable == False:
             return        
         cv2.drawFrameAxes(frame, self.camera_matrix,
                                       self.distortion_matrix, rvec=rvec,
-                                      tvec=tvec, length=lenght)
+                                      tvec=tvec, length=lenght,thickness=thickness)
 
-    def showAxis2(self, frame, trans_mat, lenght= 0.01):
+    def showAxisFromTransMat(self, frame, trans_mat, lenght= 0.01,thickness=1):
         if self.enable == False:
             return
         tvec, rvec = trans.transMatrixToTvecRvec(trans_mat)
         
         cv2.drawFrameAxes(frame, self.camera_matrix,
                                       self.distortion_matrix, rvec=rvec,
-                                      tvec=tvec, length=lenght)
+                                      tvec=tvec, length=lenght,thickness=thickness)
 
     def clear3D(self):
         if self.enable == False:
@@ -163,7 +163,7 @@ def tvecToPos(tvec):
     z =tvec[0][0][2]
     return [x, y, z]
 
-def draw3Dscatter_origin_offset(ax, offset_array):
+def draw3Dscatter_origin_offset(self, ax, offset_array):
     if self.enable == False:
             return
     for offset in offset_array:
