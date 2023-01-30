@@ -1,5 +1,6 @@
 import cv2
 from RombiCube import RombiCube
+from unity_socket import send
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     
     #my_server = server.ImageServer()
     
-    rombiCube = RombiCube(unit_size=0.05, marker_size=0.015)
+    rombiCube = RombiCube(unit_size=0.05, marker_size=0.015,vis_enable=True)
 
     # tty.setcbreak(sys.stdin.fileno())
 
@@ -68,6 +69,10 @@ if __name__ == '__main__':
             frame = np.zeros((4000,3000,3),dtype=np.uint8)
             time1 = time.time()
             rombiCube.estimatePose(frame=frame)
+            [x,y,z] = rombiCube.getXYZ()
+            [qx,qy,qz,w] = rombiCube.getQuat()
+            
+            send(x,y,z,qx,qy,qz,w)
             print("cycle: {0}".format(time.time()-time1))
             print("=============================")
 

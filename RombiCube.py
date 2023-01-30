@@ -10,18 +10,10 @@ import time
 
 class RombiCube():
     def __init__(self,unit_size, marker_size, vis_enable = False):
-        # load parameters for camera
-        # self.camera_matrix = np.load("webcam_npy/calibration_matrix.npy")
-        # self.distortion_matrix = np.load("webcam_npy/distortion_coefficients.npy")
-
-        # self.camera_matrix = np.load("hq_calib_2000_1500_mes/calibration_matrix.npy")
-        # self.distortion_matrix = np.load("hq_calib_2000_1500_mes/distortion_coefficients.npy")
+        
 
         self.camera_matrix = np.load("hq_calib_4000_1800/calibration_matrix.npy")
         self.distortion_matrix = np.load("hq_calib_4000_1800/distortion_coefficients.npy")
-
-        # self.camera_matrix = np.load("sony_npy/calibration_matrix.npy")
-        # self.distortion_matrix = np.load("sony_npy/distortion_coefficients.npy")
 
         # init marker parameters
         self.initizer = Init(unit_size=unit_size,marker_size=marker_size)
@@ -38,11 +30,10 @@ class RombiCube():
         self.xyz_pos = []
         self.angles = []
         self.trans_mat_pos = []
+        
 
         self.last_x = 0
         self.last_y = 0
-
-#def drawWithRombiCube(self):
 
 
     def getDrawing(self):
@@ -51,13 +42,11 @@ class RombiCube():
     def getAngles(self):
         return self.angles
 
-    def undistort(self, frame):
-        h, w = frame.shape[:2]
-        self.newcameramtx, roi = cv2.getOptimalNewCameraMatrix(self.camera_matrix,self.distortion_matrix, (w,h), 1, (w,h))
-        dst = cv2.undistort(frame,self.camera_matrix, self.distortion_matrix, None, self.newcameramtx)
-        x,y,w,h = roi
-        dst = dst[y:y+h,x:x+w]
-        return dst
+    def getXYZ(self):
+        return self.xyz_pos_last
+
+    def getQuat(self):
+        return self.quat_last
 
     def xyRombiCenter(self, list_x, list_y):
         self.last_x = sum(list_x)/len(list_x)
@@ -98,10 +87,10 @@ class RombiCube():
     def estimatePose(self, frame):
         self.transform_matrix_array = []
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        time1 = time.time()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # time2 = time.time()
-        # frame = self.undistort(frame)
-        # print("=CYCLE=: {0}".format(time.time()-time2))
 
         # detect markers
         time1 = time.time()
@@ -110,7 +99,7 @@ class RombiCube():
         print("succes: {0}".format(len(corners)))
         # If markers are detected
 
-        if len(corners) > 0:
+        if len(corners) > 1:
             rombi_center_x = []
             rombi_center_y = []
             time1 = time.time()
@@ -125,13 +114,11 @@ class RombiCube():
                                                              self.distortion_matrix,
                                                              flags=cv2.SOLVEPNP_IPPE_SQUARE)
 
-                # cv2.aruco.drawDetectedMarkers(frame, corners)
-
                 # Draw Axis
+                for j in range(success):
+                    self.vis.showAxis(frame, rvec[j], tvec[j],lenght=0.01, thickness=4)
 
-                # for j in range(success):
-                #     self.vis.showAxis(frame, rvec[j], tvec[j])
-
+                
                 # ======== ZRYCHLOVACI ULTRA MEGA GIGA ALGORITMUS =======
                 for j in range(4):
                     rombi_center_x.append(corners[i][0][j][0])
@@ -139,15 +126,13 @@ class RombiCube():
                 # =======================================================
                 self.createTransfromMatrixArray(
                     rvec=rvec, tvec=tvec, index_of_marker=index_of_marker[i], succes=success)
-            print("estimate: {0}".format(time.time()-time1))
+            print("solve generic: {0}".format(time.time()-time1))
 
             # ======== ZRYCHLOVACI ULTRA ALGORITMUS =======
             self.xyRombiCenter(rombi_center_x,rombi_center_y)
             # =============================================
 
-            time1 = time.time()
             transformation_center = self.centerMarkers()
-            print("center: {0}".format(time.time()-time1))
 
             if len(transformation_center)>1:
                 time1 = time.time()
@@ -157,31 +142,36 @@ class RombiCube():
                 # for trans_mat in transformation_selected:
                 #     self.vis.show3D(trans_matrix=trans_mat, auto_clear=False)
                 # self.vis.clear3D()
-
-                time1 = time.time()
                 for trans_mat in transformation_selected:
-                    self.vis.showAxis2(frame,  trans_mat, 0.015)
-                print("show axis?: {0}".format(time.time()-time1))
+                    self.vis.showAxisFromTransMat(frame,  trans_mat,lenght=0.02, thickness=6)
+
+                
+
 
                 if good_rotation_count > 0:
-                    time1 = time.time()
                     self.transformation_finall_center = trans.fuseArucoRotation(transformation_selected,corners, index_of_marker)
                     self.transformation_finall_tip = trans.tipPosition(self.transformation_finall_center)
                     # self.transformation_finall_tip = self.transformation_finall_center
-                    self.vis.showAxis2(frame,  self.transformation_finall_tip, 0.01)
-                    print("transform tip: {0}".format(time.time()-time1))
+                    self.vis.showAxisFromTransMat(frame,  self.transformation_finall_tip,lenght=0.025, thickness=12)
+                 
+                    # self.saveImg(frame)                
 
                     time1 = time.time()
                     self.xyz_pos.append([self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]])
+                    self.xyz_pos_last = [self.transformation_finall_tip[0,3],self.transformation_finall_tip[1,3],self.transformation_finall_tip[2,3]]
+
                     self.angles.append(trans.getAngles(self.transformation_finall_tip))
+                    self.quat_last = trans.getQuat(self.transformation_finall_tip)
+
                     self.trans_mat_pos.append(self.transformation_finall_center)
-                    self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
+                    # self.vis.show3D(trans_matrix=trans_mat, auto_clear=True)
                     print("colect data: {0}".format(time.time()-time1))
         
-
-        # time1 = time.time()
-        # frame = cv2.flip(frame, 1)
-        # print("flip: {0}".format(time.time()-time1))
+    def saveImg(self,frame):
+        time1 = time.time()
+        frame = cv2.resize(frame,(1000,450),interpolation = cv2.INTER_AREA)
+        cv2.imwrite('/home/admin/Rombicube/saved_img/{0}.jpg'.format(len(self.xyz_pos)), frame)
+        print("save img: {0}".format(time.time()-time1))
 
     def createTransfromMatrixArray(self, rvec, tvec, index_of_marker, succes):
 
@@ -248,6 +238,7 @@ class RombiCube():
             return_trans_mat.append(trans_mat[i])
 
         return return_trans_mat
+
     def removeBadCandidates_rotation(self, transformation_array):
         def getAxisAngle(transformation_array):
             rvec_long_array = []
