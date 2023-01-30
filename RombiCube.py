@@ -6,7 +6,6 @@ from visualisation import Visaliser
 # other libs
 import numpy as np
 import cv2
-import apriltag
 import time
 
 class RombiCube():

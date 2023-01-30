@@ -163,7 +163,7 @@ def tvecToPos(tvec):
     z =tvec[0][0][2]
     return [x, y, z]
 
-def draw3Dscatter_origin_offset(ax, offset_array):
+def draw3Dscatter_origin_offset(self,ax, offset_array):
     if self.enable == False:
             return
     for offset in offset_array:

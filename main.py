@@ -6,22 +6,23 @@ import matplotlib.pyplot as plt
 import server2 as server
 import time
 
-from picamera2 import Picamera2, Preview
+# from picamera2 import Picamera2, Preview
 import sys
 import select
-import tty
-import termios
+# import tty
+# import termios
 
 def isData():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
-old_settings = termios.tcgetattr(sys.stdin)
+# old_settings = termios.tcgetattr(sys.stdin)
 
 if __name__ == '__main__':
 
 
-    picam2 = Picamera2()
-    camera_config = picam2.create_still_configuration(buffer_count=2)
+    # picam2 = Picamera2()
+    # camera_config = picam2.create_still_configuration(buffer_count=2)
+    
     # camera_config2 = picam2.create_preview_configuration()
 
     # We're going to set up some configuration structures, apply each one in
@@ -32,15 +33,15 @@ if __name__ == '__main__':
     res_3 = (4000,3000)
     res_4 = (4000,1800)
 
-    picam2.preview_configuration.size = res_4
-    picam2.preview_configuration.format = "BGR888"
-    picam2.preview_configuration.controls.ExposureTime = 10000
-    picam2.configure("preview")
+    # picam2.preview_configuration.size = res_4
+    # picam2.preview_configuration.format = "BGR888"
+    # picam2.preview_configuration.controls.ExposureTime = 10000
+    # picam2.configure("preview")
 
 
-    picam2.start_preview(Preview.QT)
-    picam2.start()
-    time.sleep(1)
+    # picam2.start_preview(Preview.QT)
+    # picam2.start()
+    # time.sleep(1)
     
     #capture = cv2.VideoCapture(0)
     
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     
     rombiCube = RombiCube(unit_size=0.05, marker_size=0.015)
 
-    tty.setcbreak(sys.stdin.fileno())
+    # tty.setcbreak(sys.stdin.fileno())
 
     while True:
 
@@ -63,23 +64,23 @@ if __name__ == '__main__':
         #     break
         #try:
         
-            frame = picam2.capture_array("main")
-
+            # frame = picam2.capture_array("main")
+            frame = np.zeros((4000,3000,3),dtype=np.uint8)
             time1 = time.time()
             rombiCube.estimatePose(frame=frame)
             print("cycle: {0}".format(time.time()-time1))
             print("=============================")
 
-            if isData():
-                c = sys.stdin.read(1)
-                break
+            # if isData():
+            #     c = sys.stdin.read(1)
+            #     break
 
             # plt.figure(1)
             # plt.imshow(dst) 
             # plt.pause(0.1)
               
         
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)    
+    # termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)    
     
     
     # Creating dataset
