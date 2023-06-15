@@ -26,15 +26,16 @@ class Init():
         self.aurocParameters = cv2.aruco.DetectorParameters_create()
         self.aurocParameters.adaptiveThreshWinSizeMin = 3
         self.aurocParameters.adaptiveThreshWinSizeMax = 23
-        self.aurocParameters.adaptiveThreshWinSizeStep = 10
-        self.aurocParameters.cornerRefinementMaxIterations = 30
+        self.aurocParameters.adaptiveThreshWinSizeStep = 5
+        self.aurocParameters.cornerRefinementMaxIterations = 50
         self.aurocParameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-        self.aurocParameters.cornerRefinementMinAccuracy = 0.1
-        self.aurocParameters.cornerRefinementWinSize = 5
+        self.aurocParameters.cornerRefinementMinAccuracy = 0.001
+        self.aurocParameters.cornerRefinementWinSize = 10
         self.aurocParameters.maxMarkerPerimeterRate  = 4
+        self.aurocParameters.polygonalApproxAccuracyRate  = 0.01
         self.aurocParameters.minMarkerPerimeterRate  = 0.03
         # self.aurocParameters.minSideLengthCanonicalImg  = 1
-        self.aurocParameters.useAruco3Detection = False
+        self.aurocParameters.useAruco3Detection = True
 
     def createMarkerEdge(self):
         self.aruco_edges = np.array([[-self.marker_lenght / 2, self.marker_lenght / 2, 0],
@@ -44,24 +45,24 @@ class Init():
                            dtype='float32').reshape((4, 1, 3))
 
     def init_offset_matrix(self):
-        rot_offset = np.array( [[0,   2.221449705, 2.221449705 ],
-                                [-0.7853982, 0,    0   ],
-                                [-0.6139431,  1.4821898,   0.6139431 ],
-                                [0, 2.9024532,  1.2022355     ],
-                                [-0.6139431,  -1.4821898,  -0.6139431  ],
-                                [0,    0,    0   ],
-                                [0,    0.785398163 , 0   ],
-                                [0,    1.570796327 , 0   ],
-                                [0,    2.35619449 , 0   ],
-                                [0,    3.14159,  0   ],
-                                [0,    -2.35619449, 0   ],
-                                [0,    -1.570796327, 0   ],
-                                [0,    -0.785398163, 0   ],
-                                [0.7853982,  0,    0   ],
-                                [0.6139431,  1.4821898,   -0.6139431  ],
-                                [0,    2.9024532,   -1.2022355 ],
-                                [0.6139431,  -1.4821898,  0.6139431 ],
-                                [1.2091996,  1.2091996,   -1.2091996 ]])
+        rot_offset = np.array( [[0,          2.221449705, 2.221449705   ],
+                                [-0.7853982, 0,           0             ],
+                                [-0.6139431, 1.4821898,   0.6139431     ],
+                                [0,          2.9024532,   1.2022355     ],
+                                [-0.6139431, -1.4821898,  -0.6139431    ],
+                                [0,          0,           0             ],
+                                [0,          0.785398163 ,0             ],
+                                [0,          1.570796327 ,0             ],
+                                [0,          2.35619449 , 0             ],
+                                [0,          3.14159,     0             ],
+                                [0,          -2.35619449, 0             ],
+                                [0,          -1.570796327,0             ],
+                                [0,          -0.785398163,0             ],
+                                [0.7853982,  0,           0             ],
+                                [0.6139431,  1.4821898,  -0.6139431     ],
+                                [0,          2.9024532,  -1.2022355     ],
+                                [0.6139431,  -1.4821898, 0.6139431      ],
+                                [1.2091996,  1.2091996,  -1.2091996     ]])
 
 
         size_0_5 = self.unit_size * 0.5

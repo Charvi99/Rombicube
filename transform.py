@@ -81,7 +81,6 @@ def rvecTvecToTransfMatrix(tvec, rvec):
     transform_matrix[0, 3] = tvec[0]
     transform_matrix[1, 3] = tvec[1]
     transform_matrix[2, 3] = tvec[2]
-    T = tvec[0]
     return transform_matrix
 
 
@@ -121,23 +120,7 @@ def fuseMatrix(trans_matrix_array):
     return out_trans
 
 def removeBadCandidates(transform_matrix_centered,mtx,dist):
-    max_distance = 0.1
-    centers_R3 = transform_matrix_centered[:,0:3,3]
-    projected_in_pix_sp,_ = cv2.projectPoints(centers_R3,np.zeros((3,1)),np.zeros((3,1)), mtx, dist) 
-
-    mean = [np.mean(centers_R3[:,0]), np.mean(centers_R3[:,1]),np.mean(centers_R3[:,2])]
-
-    good_indices = []
-    for i in range(len(centers_R3)):
-        counter = 0
-        for j in range(3):
-            if np.abs(mean[j] - centers_R3[i,j])<max_distance:
-                counter = counter+1
-        if counter == 3:
-            good_indices.append(i)
-    return transform_matrix_centered[good_indices, :, :] , 0 , 0 
-
-    
+   
     
     max_distance = 50
     centers_R3 = transform_matrix_centered[:,0:3,3]
@@ -189,7 +172,7 @@ def slerp(v0, v1, t_array):
 def getQuaternion(trans_matrix):
     return tf3d.quaternions.mat2quat(trans_matrix[0:3,0:3])
 def quaternionAreAlmostSame(quat1, quat2):
-    return tf3d.quaternions.nearly_equivalent(quat1,quat2,rtol=0.05,atol=0.05)
+    return tf3d.quaternions.nearly_equivalent(quat1,quat2,rtol=0,atol=0.04)
 def fuseArucoRotation(transform_matrix, output_ids=[], output_corners=[]):
     Tf_cam_ball = np.eye(4)
 
@@ -210,9 +193,15 @@ def fuseArucoRotation(transform_matrix, output_ids=[], output_corners=[]):
     sum_tra = sum_tra/transform_matrix.shape[0]
     Tf_cam_ball[0:3,3] = sum_tra
 
-    #APE_pose = APE(Tf_cam_ball, output_ids, output_corners)
 
-    return 	Tf_cam_ball#, APE_pose
+
+    return 	Tf_cam_ball
+
+def flipRotation(trans_mat, alpha, beta, delta):
+    flip_mat = np.eye(4,4)
+    flip_mat[0:3,0:3] = tf3d.euler.euler2mat(alpha,beta,delta)
+    output = np.matmul(trans_mat,flip_mat)
+    return output
 
 
 ######################################################################################### 
@@ -304,7 +293,7 @@ def APE(Tf_cam_ball, ids, corners):
 
 def tipPosition(trans_mat):
     tip_mat = np.eye(4,4)
-    tip_mat[2,3] = -0.185
+    tip_mat[2,3] = -0.2245
     output = np.matmul(trans_mat,tip_mat)
     return output
 
@@ -313,6 +302,11 @@ def getAngles(trans_mat):
     euler = R.as_euler('zxy', degrees=True)
     # euler[2] = abs(euler[2])
     return euler
+def getAxisAngles(trans_mat):
+    R = rot.from_matrix(trans_mat[:3, :3])
+    axis_angle = R.as_rotvec()
+    # euler[2] = abs(euler[2])
+    return axis_angle
 
 def getQuat(trans_mat):
     R = rot.from_matrix(trans_mat[:3, :3])

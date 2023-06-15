@@ -1,126 +1,118 @@
 import cv2
 from RombiCube import RombiCube
-from unity_socket import send
+from unity_socket import send, sendString
 
 import numpy as np
 import matplotlib.pyplot as plt
-import server2 as server
 import time
 
-# from picamera2 import Picamera2, Preview
 import sys
 import select
-# import tty
-# import termios
 
-def isData():
-    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
-
-# old_settings = termios.tcgetattr(sys.stdin)
+import serial
 
 if __name__ == '__main__':
-
-
-    # picam2 = Picamera2()
-    # camera_config = picam2.create_still_configuration(buffer_count=2)
     
-    # camera_config2 = picam2.create_preview_configuration()
+    arduino = serial.Serial(port='COM13', baudrate=115200, timeout=.01)
 
-    # We're going to set up some configuration structures, apply each one in
-    # turn and see if it gave us the configuration we expected.
+    width = 4032
+    height = 3040    
+    xyz_serial_caputred = []
+    quat_serial_caputred = []
+    capture = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    # capture2 = cv2.VideoCapture(3)
+    # capture = cv2.VideoCapture(1)
+    capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
-    res_1 = (2000,1500)
-    res_2 = (3000,2000)
-    res_3 = (4000,3000)
-    res_4 = (4000,1800)
-
-    # picam2.preview_configuration.size = res_4
-    # picam2.preview_configuration.format = "BGR888"
-    # picam2.preview_configuration.controls.ExposureTime = 10000
-    # picam2.configure("preview")
-
-
-    # picam2.start_preview(Preview.QT)
-    # picam2.start()
-    # time.sleep(1)
+    # width = 3840
+    # height = 2160
+    capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+    capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3) # auto mode
+    capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1) # manual mode
+    capture.set(cv2.CAP_PROP_EXPOSURE, -12.0)
+    # Turn off auto exposure
+    capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
+    # set exposure time
+    capture.set(cv2.CAP_PROP_EXPOSURE, 40)    
     
-    #capture = cv2.VideoCapture(0)
+    print(capture.get(cv2.CAP_PROP_EXPOSURE))
+    time.sleep(0.5)
     
-    #my_server = server.ImageServer()
+    rombiCube = RombiCube(unit_size=0.074, marker_size=0.026,vis_enable=True)
     
-    rombiCube = RombiCube(unit_size=0.05, marker_size=0.015,vis_enable=True)
+    window_name = "Estimated Pose"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, int(width/5), int(height/5))
 
-    # tty.setcbreak(sys.stdin.fileno())
+    divider = 4
+    frame = np.zeros(((int)(width/divider),(int)(height/divider),3),np.uint8)
 
     while True:
 
-        #ret, frame = capture.read()
-        # if not ret:
-        #     # if not True:
-        #     break
-        #rombiCube.estimatePose(frame=frame)
-        # cv2.imshow('Estimated Pose', frame)
-        # key = cv2.waitKey(1) & 0xFF
-        # if key == ord('q'):
-        #     break
-        #try:
+        ret, frame = capture.read()
+        if not ret:
+            break;
         
-            # frame = picam2.capture_array("main")
-            frame = np.zeros((4000,3000,3),dtype=np.uint8)
-            time1 = time.time()
-            rombiCube.estimatePose(frame=frame)
-            [x,y,z] = rombiCube.getXYZ()
-            [qx,qy,qz,w] = rombiCube.getQuat()
-            
-            send(x,y,z,qx,qy,qz,w)
-            print("cycle: {0}".format(time.time()-time1))
-            print("=============================")
-
-            # if isData():
-            #     c = sys.stdin.read(1)
-            #     break
-
-            # plt.figure(1)
-            # plt.imshow(dst) 
-            # plt.pause(0.1)
-              
+        # ret2, frame2 = capture2.read()
+        # if not ret2:
+        #     break;
         
-    # termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)    
-    
-    
-    # Creating dataset
+        time1 = time.time()
+        frame, crop_img = rombiCube.estimatePose(frame=frame)
+        [x,y,z] = rombiCube.getXYZ()
+        [qx,qy,qz,qw] = rombiCube.getQuat()
+        # [a,b,c] = rombiCube.getAngles_last()
+        # [ax,ay,az] = rombiCube.getAxisAngles_last()
+        
+        send(x,y,z,qx,qy,qz,qw)
+        if len(arduino.readline()) > 1:
+            xyz_serial_caputred.append(rombiCube.getXYZ())
+            quat_serial_caputred.append(rombiCube.getQuat())
+            sendString("BBBBB")
+        # send(x,y,z,ax,ay,az,0)
+        #sendString(rombiCube.getTransMatString())
+        #send(x,y,z,a,b,c,0)
+        print("cycle: {0}".format(time.time()-time1))
+        print("=============================")
+        
+  
+        cv2.imshow(window_name, frame)
+        # cv2.imshow("usb", frame2)
+        cv2.imshow("crop", crop_img)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+                
 
     
     # Creating figure
-    plt.ion()
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.set_box_aspect([1, 1, 1])
+    # plt.ion()
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    # ax.set_box_aspect([1, 1, 1])
     
     # Creating plot
-    drawing = rombiCube.getDrawing()
-    arr = np.array(drawing)
-    np.savetxt("6dof_xyz.csv", arr, delimiter=",")
-    # dof_mes_array = np.array(rombiCube.trans_mat_pos)
-    # print(dof_mes_array)
-    # np.savetxt("6dof_mes.csv", dof_mes_array, delimiter=",")
-    ax.plot(arr[:,0],arr[:,1],arr[:,2], color = "green")
-    plt.title("simple 3D scatter plot")
+    # drawing = rombiCube.getDrawing()
+    arr_xyz = np.array(xyz_serial_caputred)
+    arr_quat = np.array(quat_serial_caputred)
+    np.savetxt("xyz.csv", arr_xyz, delimiter=",", fmt='%f')
+    np.savetxt("quat.csv", arr_quat, delimiter=",", fmt='%f')
     
-    # ax.set_xlim3d([-180, 180])
-    # ax.set_ylim3d([-180, 180])
-    # ax.set_zlim3d([-180, 180])
+    # ax.plot(arr[:,0],arr[:,1],arr[:,2], color = "green")
+    # plt.title("simple 3D scatter plot")
 
-    ax.set_xlim3d([-0.2, 0.2])
-    ax.set_ylim3d([-0.2, 0.2])
-    ax.set_zlim3d([0.2, 0.6])
 
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    # ax.set_xlim3d([-0.2, 0.2])
+    # ax.set_ylim3d([-0.2, 0.2])
+    # ax.set_zlim3d([0.2, 0.6])
+
+    # ax.set_xlabel('x')
+    # ax.set_ylabel('y')
+    # ax.set_zlabel('z')
         
-    # show plot
-    plt.show()
+    # # show plot
+    # plt.show()
 
-    #capture.release()
-    # cv2.destroyAllWindows()
+capture.release()
+cv2.destroyAllWindows()
